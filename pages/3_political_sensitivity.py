@@ -60,15 +60,15 @@ lean_stats = df.groupby("lean").agg(
 lean_stats["Bias Rate (%)"] = round(lean_stats["Biased"] / lean_stats["Total"] * 100, 1)
 
 # GAUGE CHARTS
-st.subheader("Bias Detection Rate — Left vs Right vs Center")
+st.subheader("Bias Detection Rate — Left vs Right")
 
 left_row   = lean_stats[lean_stats["lean"] == "Left"]
 right_row  = lean_stats[lean_stats["lean"] == "Right"]
-center_row = lean_stats[lean_stats["lean"] == "Center"]
+
 
 left_rate   = float(left_row["Bias Rate (%)"].values[0])   if not left_row.empty   else 0
 right_rate  = float(right_row["Bias Rate (%)"].values[0])  if not right_row.empty  else 0
-center_rate = float(center_row["Bias Rate (%)"].values[0]) if not center_row.empty else 0
+
 
 def make_gauge(value, title, color):
     fig = go.Figure(go.Indicator(
@@ -99,7 +99,7 @@ def make_gauge(value, title, color):
     )
     return fig
 
-g1, g2, g3 = st.columns(3)
+g1, g2 = st.columns(2)
 
 with g1:
     st.plotly_chart(
@@ -115,12 +115,7 @@ with g2:
     )
     st.caption(f"Right outlets: {int(right_row['Total'].values[0]) if not right_row.empty else 0} articles analyzed")
 
-with g3:
-    st.plotly_chart(
-        make_gauge(center_rate, "Center Outlets — % Labeled BIASED", "#22c55e"),
-        use_container_width=True
-    )
-    st.caption(f"Center outlets: {int(center_row['Total'].values[0]) if not center_row.empty else 0} articles analyzed")
+
 
 st.markdown("---")
 
@@ -214,34 +209,6 @@ st.plotly_chart(fig_compare, use_container_width=True)
 
 st.markdown("---")
 
-
-
-# MODEL SIZE COMPARISON
-st.subheader("Does Model Size Affect Political Symmetry?")
-st.caption("Comparing 8B vs 3B model bias rates for Left and Right outlets")
-
-model_compare = []
-for lean in ["Left", "Right", "Center"]:
-    subset = df[df["lean"] == lean]
-    if not subset.empty:
-        rate_8b = round((subset["label_8b"] == "BIASED").mean() * 100, 1)
-        rate_3b = round((subset["label_3b"] == "BIASED").mean() * 100, 1)
-        model_compare.append({"Lean": lean, "Model": "Llama3 8B",   "Bias Rate (%)": rate_8b})
-        model_compare.append({"Lean": lean, "Model": "Llama3.2 3B", "Bias Rate (%)": rate_3b})
-
-if model_compare:
-    df_model = pd.DataFrame(model_compare)
-    fig_model = px.bar(
-        df_model,
-        x="Lean", y="Bias Rate (%)",
-        color="Model", barmode="group",
-        title="Political Bias Rate by Model Size — Does a Larger Model Show Less Bias?",
-        text="Bias Rate (%)", height=380,
-        color_discrete_map={"Llama3 8B": "#8b5cf6", "Llama3.2 3B": "#f59e0b"}
-    )
-    fig_model.update_traces(texttemplate='%{text}%', textposition='outside')
-    fig_model.update_layout(**PLOTLY_LAYOUT, yaxis_range=[0, 115])
-    st.plotly_chart(fig_model, use_container_width=True)
 
 st.markdown("---")
 st.caption("Ayushi Patel · MS Computer Science · Montclair State University · Spring 2026")

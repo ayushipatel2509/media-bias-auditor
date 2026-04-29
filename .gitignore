@@ -1,0 +1,12 @@
+# SQLite Databases
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS Files
+.DS_Store

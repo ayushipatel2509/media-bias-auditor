@@ -138,186 +138,43 @@ with col4:
 
 st.markdown("---")
 
-# SECTION 1 — BIAS RATE BY OUTLET
 
-sec1_col, btn1_col = st.columns([6, 1])
-with sec1_col:
-    st.subheader("Bias Detection Rate by News Outlet")
-    st.caption("How often does the AI label each outlet's articles as BIASED?")
-with btn1_col:
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.page_link("pages/1_ai_audit.py", label="Full AI Audit")
+# SECTION 5 — RESEARCH METHODOLOGY
 
-if summary["outlet_stats"]:
-    outlet_data = []
-    for outlet, lean, total_art, biased_art in summary["outlet_stats"]:
-        if total_art > 0:
-            bias_rate = round(biased_art / total_art * 100, 1)
-            outlet_data.append({
-                "Outlet": outlet, "Lean": lean,
-                "Total Articles": total_art,
-                "Biased": biased_art,
-                "Bias Rate (%)": bias_rate
-            })
+st.subheader("Research Methodology")
+st.markdown(
+    "This project employs a multi-tiered approach to audit LLMs for systemic political bias. "
+    "By running controlled experiments on live news data, we evaluate the models' objectivity, "
+    "consistency, and resilience to prompt framing."
+)
 
-    if outlet_data:
-        df_outlets = pd.DataFrame(outlet_data)
-        color_map  = {"Left": "#3b82f6", "Right": "#ef4444", "Center": "#22c55e"}
+col_meth1, col_meth2 = st.columns(2)
 
-        fig = px.bar(
-            df_outlets, x="Outlet", y="Bias Rate (%)",
-            color="Lean", color_discrete_map=color_map,
-            title="AI-Detected Bias Rate by News Outlet",
-            text="Bias Rate (%)", height=380
-        )
-        fig.update_traces(texttemplate='%{text}%', textposition='outside')
-        fig.update_layout(
-            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-            font=dict(family="Inter"),
-            showlegend=True,
-            xaxis_title="News Outlet", yaxis_title="Bias Rate (%)",
-            yaxis_range=[0, 115]
-        )
-        st.plotly_chart(fig, use_container_width=True)
+with col_meth1:
+    with st.container(border=True):
+        st.markdown("##### Experiments 1 & 2 — Model Audit")
+        st.caption("Do different AI models agree on bias?")
+        st.write("We send the same article to Llama3 8B and Llama3.2 3B. Disagreements show that bias detection is model-dependent and subjective.")
+        st.page_link("pages/1_ai_audit.py", label="View Full AI Audit Results")
 
-        st.dataframe(
-            df_outlets[["Outlet", "Lean", "Total Articles", "Biased", "Bias Rate (%)"]],
-            use_container_width=True, hide_index=True
-        )
-else:
-    st.info("Run Step 1 and Step 2 above to generate results.")
+    with st.container(border=True):
+        st.markdown("##### Experiment 3 — Prompt Sensitivity")
+        st.caption("Does rephrasing change the answer?")
+        st.write("We test each article with three differently worded prompts. If verdicts change, the AI is responding to framing rather than content.")
+        st.page_link("pages/2_prompt_sensitivity.py", label="View Prompt Sensitivity Results")
 
-st.markdown("---")
+with col_meth2:
+    with st.container(border=True):
+        st.markdown("##### Experiment 4 — Political Symmetry")
+        st.caption("Are Left and Right treated equally?")
+        st.write("We compare AI bias detection rates across left and right leaning outlets. Asymmetry reveals political bias embedded in the model's training data.")
+        st.page_link("pages/3_political_sensitivity.py", label="View Political Symmetry Results")
 
-# SECTION 2 — POLITICAL SYMMETRY
-
-sec2_col, btn2_col = st.columns([6, 1])
-with sec2_col:
-    st.subheader("Political Symmetry — Does AI Treat Left and Right Equally?")
-    st.caption("If the AI labels one side as BIASED more often, the AI itself has a political lean.")
-with btn2_col:
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.page_link("pages/3_political_sensitivity.py", label="Full Analysis")
-
-sym           = run_political_symmetry()
-left_biased   = sym["Left"]["BIASED"]
-left_neutral  = sym["Left"]["NEUTRAL"]
-right_biased  = sym["Right"]["BIASED"]
-right_neutral = sym["Right"]["NEUTRAL"]
-left_total    = left_biased  + left_neutral
-right_total   = right_biased + right_neutral
-
-if left_total > 0 and right_total > 0:
-    left_rate  = round(left_biased  / left_total  * 100, 1)
-    right_rate = round(right_biased / right_total * 100, 1)
-
-    sym_col1, sym_col2 = st.columns(2)
-
-    def make_gauge(value, title, color):
-        fig = go.Figure(go.Indicator(
-            mode="gauge+number", value=value,
-            title={"text": title, "font": {"size": 13, "family": "Inter", "color": "#f8fafc"}},
-            number={"suffix": "%", "font": {"color": "#f8fafc"}},
-            gauge={
-                "axis": {"range": [0, 100]},
-                "bar":  {"color": color},
-                "steps": [
-                    {"range": [0,  33], "color": "#064e3b"},
-                    {"range": [33, 66], "color": "#78350f"},
-                    {"range": [66,100], "color": "#7f1d1d"}
-                ],
-                "threshold": {
-                    "line": {"color": "#94a3b8", "width": 2},
-                    "thickness": 0.75, "value": 50
-                }
-            }
-        ))
-        fig.update_layout(
-            height=260,
-            margin=dict(t=50, b=10),
-            paper_bgcolor="rgba(0,0,0,0)",
-            font=dict(family="Inter", color="#f8fafc")
-        )
-        return fig
-
-    with sym_col1:
-        st.plotly_chart(
-            make_gauge(left_rate, "Left-Leaning Outlets — % Labeled BIASED", "#3b82f6"),
-            use_container_width=True
-        )
-    with sym_col2:
-        st.plotly_chart(
-            make_gauge(right_rate, "Right-Leaning Outlets — % Labeled BIASED", "#ef4444"),
-            use_container_width=True
-        )
-
-    diff = abs(left_rate - right_rate)
-    if diff < 10:
-        st.success(f"**AI appears POLITICALLY SYMMETRIC** — Difference: {diff:.1f}% (within 10% threshold)")
-    elif left_rate > right_rate:
-        st.error(f"**AI shows RIGHT-LEANING BIAS** — Labels Left outlets as biased {diff:.1f}% more often")
-    else:
-        st.error(f"**AI shows LEFT-LEANING BIAS** — Labels Right outlets as biased {diff:.1f}% more often")
-else:
-    st.info("Run the AI experiments first to see political symmetry results.")
-
-st.markdown("---")
-
-# SECTION 3 — PROMPT SENSITIVITY SUMMARY
-
-sec3_col, btn3_col = st.columns([6, 1])
-with sec3_col:
-    st.subheader("Prompt Sensitivity Summary")
-    st.caption("Does rephrasing the question change the AI's verdict on the same article?")
-with btn3_col:
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.page_link("pages/2_prompt_sensitivity.py", label="Full Analysis")
-
-try:
-    conn = get_db_connection()
-    prompt_df = pd.read_sql_query("""
-        SELECT prompt_a_label, prompt_b_label, prompt_c_label
-        FROM articles WHERE prompt_a_label IS NOT NULL
-    """, conn)
-    conn.close()
-
-    if not prompt_df.empty:
-        prompt_rates = pd.DataFrame({
-            "Prompt": ["Prompt A (Direct)", "Prompt B (Framing)", "Prompt C (Fact-Checker)"],
-            "Bias Rate (%)": [
-                round((prompt_df["prompt_a_label"] == "BIASED").mean() * 100, 1),
-                round((prompt_df["prompt_b_label"] == "BIASED").mean() * 100, 1),
-                round((prompt_df["prompt_c_label"] == "BIASED").mean() * 100, 1),
-            ]
-        })
-
-        fig_prompt = px.bar(
-            prompt_rates, x="Prompt", y="Bias Rate (%)",
-            title="Bias Detection Rate Changes With Prompt Wording — Same Article, Different Question",
-            text="Bias Rate (%)",
-            color="Bias Rate (%)",
-            color_continuous_scale="RdYlGn_r",
-            height=320
-        )
-        fig_prompt.update_traces(texttemplate='%{text}%', textposition='outside')
-        fig_prompt.update_layout(
-            plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-            font=dict(family="Inter"),
-            yaxis_range=[0, 115], coloraxis_showscale=False
-        )
-        st.plotly_chart(fig_prompt, use_container_width=True)
-
-        variance = abs(prompt_rates["Bias Rate (%)"].max() - prompt_rates["Bias Rate (%)"].min())
-        if variance >= 20:
-            st.error(f"**Large variation ({variance:.1f}%)** — Verdict changes significantly with prompt wording.")
-        elif variance >= 5:
-            st.warning(f"**Moderate variation ({variance:.1f}%)** — Some prompt sensitivity detected.")
-        else:
-            st.success(f"**Low variation ({variance:.1f}%)** — AI is relatively prompt-stable.")
-    else:
-        st.info("Run AI experiments to see prompt sensitivity data.")
-except Exception:
-    st.info("Run AI experiments to see prompt sensitivity data.")
+    with st.container(border=True):
+        st.markdown("##### Live Article Analyzer")
+        st.caption("Test any article in real time")
+        st.write("Paste any news article or URL and get instant bias analysis from both AI models, with reasoning, trigger words, and database comparison.")
+        st.page_link("pages/4_live_analyser.py", label="Open Live Analyzer")
 
 st.markdown("---")
 
@@ -383,42 +240,6 @@ else:
 
 st.markdown("---")
 
-# SECTION 5 — RESEARCH METHODOLOGY
 
-st.subheader("Research Methodology")
-st.markdown(
-    "This project employs a multi-tiered approach to audit LLMs for systemic political bias. "
-    "By running controlled experiments on live news data, we evaluate the models' objectivity, "
-    "consistency, and resilience to prompt framing."
-)
 
-col_meth1, col_meth2 = st.columns(2)
-
-with col_meth1:
-    with st.container(border=True):
-        st.markdown("##### Experiments 1 & 2 — Model Audit")
-        st.caption("Do different AI models agree on bias?")
-        st.write("We send the same article to Llama3 8B and Llama3.2 3B. Disagreements show that bias detection is model-dependent and subjective.")
-        st.page_link("pages/1_ai_audit.py", label="View Full AI Audit Results")
-
-    with st.container(border=True):
-        st.markdown("##### Experiment 3 — Prompt Sensitivity")
-        st.caption("Does rephrasing change the answer?")
-        st.write("We test each article with three differently worded prompts. If verdicts change, the AI is responding to framing rather than content.")
-        st.page_link("pages/2_prompt_sensitivity.py", label="View Prompt Sensitivity Results")
-
-with col_meth2:
-    with st.container(border=True):
-        st.markdown("##### Experiment 4 — Political Symmetry")
-        st.caption("Are Left and Right treated equally?")
-        st.write("We compare AI bias detection rates across left and right leaning outlets. Asymmetry reveals political bias embedded in the model's training data.")
-        st.page_link("pages/3_political_sensitivity.py", label="View Political Symmetry Results")
-
-    with st.container(border=True):
-        st.markdown("##### Live Article Analyzer")
-        st.caption("Test any article in real time")
-        st.write("Paste any news article or URL and get instant bias analysis from both AI models, with reasoning, trigger words, and database comparison.")
-        st.page_link("pages/4_live_analyser.py", label="Open Live Analyzer")
-
-st.markdown("---")
 st.caption("Ayushi Patel · MS Computer Science · Montclair State University · Spring 2026")

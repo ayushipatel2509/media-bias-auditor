@@ -39,7 +39,6 @@ def init_db():
             label_3b        TEXT,
             reason_8b       TEXT,
             reason_3b       TEXT,
-            prompt_a_label  TEXT,
             prompt_b_label  TEXT,
             prompt_c_label  TEXT,
             processed       INTEGER DEFAULT 0
