@@ -1,8 +1,8 @@
 # Media Bias AI Auditor
 
-> **Auditing the Auditors — Do LLMs Show Political Bias?**
+ **Auditing the Auditors — Do LLMs Show Political Bias?**
 
-This project investigates whether Large Language Models (LLMs) exhibit political bias when tasked with detecting bias in news articles. By scraping real-time articles from politically diverse news outlets and running controlled experiments, this application evaluates the objectivity, consistency, and resilience of AI models (specifically Llama3 8B and Llama3.2 3B).
+=======This project investigates whether Large Language Models (LLMs) exhibit political bias when tasked with detecting bias in news articles. By scraping real-time articles from politically diverse news outlets and running controlled experiments, this application evaluates the objectivity, consistency, and resilience of AI models (specifically Llama3 8B and Llama3.2 3B).
 
 ## Features & Methodology
 
