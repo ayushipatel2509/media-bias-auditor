@@ -2,7 +2,7 @@
 
  **Auditing the Auditors — Do LLMs Show Political Bias?**
 
-=======This project investigates whether Large Language Models (LLMs) exhibit political bias when tasked with detecting bias in news articles. By scraping real-time articles from politically diverse news outlets and running controlled experiments, this application evaluates the objectivity, consistency, and resilience of AI models (specifically Llama3 8B and Llama3.2 3B).
+This project investigates whether Large Language Models (LLMs) exhibit political bias when tasked with detecting bias in news articles. By scraping real-time articles from politically diverse news outlets and running controlled experiments, this application evaluates the objectivity, consistency, and resilience of AI models (specifically Llama3 8B and Llama3.2 3B).
 
 ## Features & Methodology
 
@@ -47,6 +47,3 @@ Once the application is running in your browser:
 2. **Step 2 — Run AI Experiments**: Trigger the AI analyzer to evaluate the scraped articles using local LLMs.
 3. **Explore Results**: Use the sidebar to navigate through the detailed analysis pages (AI Audit, Prompt Sensitivity, Political Symmetry, and the Live Analyzer).
 
-## Author
-Ayushi Patel  
-MS Computer Science · Montclair State University · Spring 2026
